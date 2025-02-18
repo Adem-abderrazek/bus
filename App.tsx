@@ -182,20 +182,66 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-     
-      
+      <Text style={styles.header}>🚍 Bus Tracker</Text>
+
+      {/* Champ de recherche de destination */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Enter destination"
+        value={destinationQuery}
+        onChangeText={(text) => {
+          setDestinationQuery(text);
+          fetchSuggestions(text); // Recherche des suggestions en temps réel
+        }}
+      />
+
+      {/* Liste des suggestions d'adresses */}
+      {suggestions.length > 0 && (
+        <FlatList
+          data={suggestions}
+          keyExtractor={(item) => item.place_id}
+          renderItem={({ item }) => (
+            <TouchableHighlight
+              onPress={() => selectAddress(item)}
+              style={styles.suggestionItem}
+            >
+              <Text>{item.description}</Text>
+            </TouchableHighlight>
+          )}
+        />
+      )}
+
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={isSharing ? stopSharingLocation : startSharingLocation}
+      >
+        <Text style={styles.shareButtonText}>
+          {isSharing ? "🛑 Stop Sharing" : "📡 Start Sharing"}
+        </Text>
+      </TouchableOpacity>
+
+      {location ? (
         <MapView 
           initialRegion={{
-            latitude: 34.7701248,
-            longitude: 10.7675648,
+            latitude: location.latitude,
+            longitude: location.longitude,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           }} 
           style={styles.map}
-       
+          onPress={handleMapPress}
         >
+          {startPoint && <Marker coordinate={startPoint} title="Start Location" pinColor="blue" />}
+          {stopPoint && <Marker coordinate={stopPoint} title="Stop Location" pinColor="red" />}
+          <Marker coordinate={location} title="Bus Location" pinColor="purple" />
+
+          {routeCoords.length > 0 && (
+            <Polyline coordinates={routeCoords} strokeWidth={4} strokeColor="red" />
+          )}
         </MapView>
-        
+      ) : (
+        <Text style={styles.infoText}>Press "Start Sharing" to begin tracking.</Text>
+      )}
     </View>
   );
 }
